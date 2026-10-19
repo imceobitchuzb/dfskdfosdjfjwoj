@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#04060c">
+  <title>MT TRADE — Бесплатные сигналы и ТА XAU/USD (Золото) и Crypto</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 34'%3E%3Crect width='34' height='34' rx='10' fill='%2304060c'/%3E%3Cg fill='%23f4c25b'%3E%3Crect x='9' y='16' width='4' height='10' rx='1.6'/%3E%3Crect x='15' y='9' width='4' height='17' rx='1.6'/%3E%3Crect x='21' y='13' width='4' height='13' rx='1.6'/%3E%3C/g%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;700&display=swap&subset=cyrillic" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <!-- Telegram Mini App WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    /* Custom features & MT5 Deal overlay styling */
+    .asset-selector {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--line-strong);
+      border-radius: 12px;
+      padding: 3px 6px;
+      margin-left: 12px;
+    }
+    .asset-selector select {
+      background: transparent;
+      color: var(--gold);
+      border: 0;
+      font-family: var(--display);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      outline: none;
+    }
+    .asset-selector select option {
+      background: #0b1120;
+      color: #eaf0ff;
+    }
+    /* MT5 Live Terminal & Market Status Bar */
+    .mt5-status-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 18px;
+      margin-bottom: 20px;
+      border-radius: 14px;
+      background: rgba(14, 22, 40, 0.7);
+      border: 1px solid rgba(160, 185, 255, 0.12);
+      font-size: 13px;
+    }
+    .mt5-status-left, .mt5-status-center, .mt5-status-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .mt5-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      background: rgba(45, 226, 160, 0.12);
+      color: #2de2a0;
+      border: 1px solid rgba(45, 226, 160, 0.3);
+    }
+    .mt5-badge.stale {
+      background: rgba(244, 194, 91, 0.12);
+      color: #f4c25b;
+      border-color: rgba(244, 194, 91, 0.3);
+    }
+    .mt5-badge.disconnected {
+      background: rgba(255, 93, 115, 0.12);
+      color: #ff5d73;
+      border-color: rgba(255, 93, 115, 0.3);
+    }
+    .mt5-badge .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 8px currentColor;
+    }
+    .mt5-info-item {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .mt5-info-item b {
+      color: #eaf0ff;
+      font-weight: 700;
+    }
+    .mt5-tick-display {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 5px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+    }
+    .tick-label {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .tick-bid {
+      color: #2de2a0;
+      font-weight: 700;
+    }
+    .tick-sep {
+      color: rgba(255, 255, 255, 0.2);
+    }
+    .tick-ask {
+      color: #5fe3ff;
+      font-weight: 700;
+    }
+    .tick-spread {
+      color: var(--gold);
+      font-size: 11px;
+      margin-left: 6px;
+      padding-left: 6px;
+      border-left: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .mt5-time-tag {
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .mt5-reconnect-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(244, 194, 91, 0.3);
+      background: rgba(244, 194, 91, 0.08);
+      color: var(--gold);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .mt5-reconnect-btn:hover {
+      background: rgba(244, 194, 91, 0.2);
+      transform: translateY(-1px);
+    }
+    .mt5-reconnect-btn.loading {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    /* Copy to MT5 button */
+    .copy-mt5-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+      padding: 10px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(244, 194, 91, 0.4);
+      background: rgba(244, 194, 91, 0.08);
+      color: var(--gold);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      width: 100%;
+      justify-content: center;
+    }
+    .copy-mt5-btn:hover {
+      background: rgba(244, 194, 91, 0.16);
+      transform: translateY(-1px);
+    }
+    /* News & Macro Mode Styles */
+    .news-forecast-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .news-forecast-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      transition: all 0.2s ease;
+    }
+    .news-forecast-card:hover {
+      border-color: rgba(244, 194, 91, 0.4);
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .fc-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .fc-head b {
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .fc-badge {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: rgba(45, 226, 160, 0.15);
+      color: #2de2a0;
+      border: 1px solid rgba(45, 226, 160, 0.3);
+    }
+    .fc-badge.bear {
+      background: rgba(255, 93, 115, 0.15);
+      color: #ff5d73;
+      border-color: rgba(255, 93, 115, 0.3);
+    }
+    .fc-badge.neutral {
+      background: rgba(141, 155, 189, 0.15);
+      color: #8d9bbd;
+      border-color: rgba(141, 155, 189, 0.3);
+    }
+    .fc-desc {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin: 0;
+    }
+    .calendar-event-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--line);
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+    .event-impact-badge {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 6px;
+      text-transform: uppercase;
+    }
+    .impact-High {
+      background: rgba(255, 93, 115, 0.2);
+      color: #ff5d73;
+      border: 1px solid rgba(255, 93, 115, 0.4);
+    }
+    .impact-Medium {
+      background: rgba(244, 194, 91, 0.2);
+      color: #f4c25b;
+      border: 1px solid rgba(244, 194, 91, 0.4);
+    }
+    .impact-Low {
+      background: rgba(141, 155, 189, 0.2);
+      color: #8d9bbd;
+    }
+    /* Sound toggle in header */
+    .sound-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--line);
+      font-size: 12px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .sound-pill.active {
+      color: var(--gold);
+      border-color: rgba(244, 194, 91, 0.4);
+    }
+  </style>
+</head>
+<body>
+  <!-- Background Animated Waves & Floating Candles -->
+  <canvas id="bg"></canvas>
+  <div class="vignette"></div>
+  <div class="noise"></div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="wrap">
+      <a class="logo" href="/" aria-label="MT TRADE">
+        <svg viewBox="0 0 34 34" fill="none"><rect x="1" y="1" width="32" height="32" rx="10" stroke="#f4c25b" stroke-opacity=".5"/><g fill="#f4c25b"><rect x="9" y="16" width="4" height="10" rx="1.6"/><rect x="15" y="9" width="4" height="17" rx="1.6"/><rect x="21" y="13" width="4" height="13" rx="1.6"/></g></svg>
+        <span>MT <b>TRADE</b> <small style="font-size:10px; color:#2de2a0; font-weight:800; border:1px solid #2de2a0; padding:1px 6px; border-radius:8px; margin-left:4px;">FREE PRO</small></span>
+      </a>
+
+      <!-- Asset Switcher -->
+      <div class="asset-selector">
+        <select id="assetSelect" aria-label="Выбор торгового инструмента">
+          <option value="XAUUSD" selected>XAU/USD (Золото)</option>
+          <option value="BTCUSD">BTC/USD (Bitcoin)</option>
+          <option value="EURUSD">EUR/USD (Евро)</option>
+          <option value="GBPUSD">GBP/USD (Фунт)</option>
+        </select>
+      </div>
+
+      <nav class="nav" style="display:flex; align-items:center; gap:16px;">
+        <button type="button" class="sound-pill active" id="soundToggle" title="Звуковые сигналы">
+          <span id="soundIcon">🔔</span> <span>Звук</span>
+        </button>
+        <span class="id-chip" style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:20px; background:rgba(45,226,160,0.1); border:1px solid rgba(45,226,160,0.3); font-size:12px; color:#2de2a0; font-weight:700;">
+          <i style="width:7px; height:7px; border-radius:50%; background:#2de2a0; display:inline-block;"></i> <span id="clientId">FREE ACCESS</span>
+        </span>
+        <button id="logout" style="display:none;"></button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Cabinet App Shell -->
+  <main class="page">
+    <div class="wrap cab-page" id="cabPage">
+      <!-- Live MetaTrader 5 Connection & Market Data Status Bar -->
+      <section class="mt5-status-bar glass" id="mt5StatusBar" aria-label="Статус подключения к MetaTrader 5">
+        <div class="mt5-status-left">
+          <span class="mt5-badge" id="mt5Badge">
+            <i class="status-dot"></i>
+            <span id="mt5StateText">MT5 ПОДКЛЮЧЕН</span>
+          </span>
+          <span class="mt5-info-item">
+            <small>Сервер:</small>
+            <b id="mt5BrokerServer">XMGlobal-MT5 7</b>
+          </span>
+          <span class="mt5-info-item">
+            <small>Символ MT5:</small>
+            <b id="mt5ActiveSymbol">GOLD</b>
+          </span>
+          <span class="mt5-badge" id="mt5ActiveTradeBadge" style="display:none; background:rgba(244,194,91,0.15); color:#f4c25b; border-color:rgba(244,194,91,0.4);">
+            <i class="status-dot"></i>
+            <span id="mt5ActiveTradeText">СДЕЛКА В РАБОТЕ</span>
+          </span>
+        </div>
+
+        <div class="mt5-status-center">
+          <div class="mt5-tick-display" id="mt5TickDisplay">
+            <span class="tick-label">BID</span> <b id="mt5Bid" class="tick-bid">--</b>
+            <span class="tick-sep">/</span>
+            <span class="tick-label">ASK</span> <b id="mt5Ask" class="tick-ask">--</b>
+            <span class="tick-spread" id="mt5Spread">СПРЕД: --</span>
+          </div>
+        </div>
+
+        <div class="mt5-status-right">
+          <span class="mt5-time-tag" id="mt5TimeTag">Тик: <span id="mt5LastTickTime">Загрузка…</span></span>
+          <button type="button" class="mt5-reconnect-btn" id="mt5ReconnectBtn" title="Переподключить MetaTrader 5">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            <span>Переподключить MT5</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- TAB 1: SIGNAL DESK (Запрос сигнала) -->
+      <section class="glass desk" id="signalDesk">
+        <div class="desk-head">
+          <span class="kicker"><i class="pulse-dot"></i> АНАЛИЗ И СИГНАЛЫ В ОДИН КЛИК</span>
+          <h2>Сгенерировать сигнал</h2>
+          <p>Система сводит голоса <b>более 200 индикаторов</b> и смарт-мани структур (FVG, Order Blocks, Liquidity) и дает точную точку входа, стоп-лосс и 3 цели прибыли.</p>
+        </div>
+
+        <div class="desk-step">
+          <span class="step-no">1</span>
+          <b>Таймфрейм анализа</b>
+          <small>выберите период</small>
+        </div>
+        <div class="seg desk-tf" id="deskTf" role="radiogroup">
+          <button type="button" data-tf="5m">5м</button>
+          <button type="button" class="active" data-tf="15m" aria-checked="true">15м</button>
+          <button type="button" data-tf="30m">30м</button>
+          <button type="button" data-tf="1h">1ч</button>
+          <button type="button" data-tf="4h">4ч</button>
+          <button type="button" data-tf="8h">8ч</button>
+          <button type="button" data-tf="1d">1д</button>
+        </div>
+
+        <div class="desk-step">
+          <span class="step-no">2</span>
+          <b>Стратегии и индикаторы</b>
+          <small id="pickMeta">все индикаторы</small>
+        </div>
+        <button type="button" class="pick-card" id="openPicker">
+          <span class="pick-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>
+          </span>
+          <span class="pick-text">
+            <small>Набор фильтров</small>
+            <b id="pickName">Консенсус 200+ индикаторов</b>
+            <div id="pickChips" class="pick-chips"></div>
+          </span>
+          <span class="pick-action">Настроить →</span>
+        </button>
+
+        <div class="desk-closed" id="deskClosed" hidden></div>
+
+        <div class="desk-foot">
+          <div>
+            <span class="tf-hint" id="askSummary">XAU/USD · 15 минут · Все индикаторы</span>
+          </div>
+          <button type="button" class="btn btn-gold" id="askSignal">
+            <span id="askLabel">Запросить сигнал</span> <span class="arrow">→</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- TAB 1.5: THINKING / ANALYZING ANIMATION -->
+      <section class="analyzing" id="analyzing" hidden>
+        <div class="orbit">
+          <svg class="orbit-rings" viewBox="0 0 150 150">
+            <circle class="track" cx="75" cy="75" r="68"/>
+            <circle class="arc a1" cx="75" cy="75" r="68" pathLength="100"/>
+            <circle class="track" cx="75" cy="75" r="50"/>
+            <circle class="arc a2" cx="75" cy="75" r="50" pathLength="100"/>
+            <circle class="track" cx="75" cy="75" r="32"/>
+            <circle class="arc a3" cx="75" cy="75" r="32" pathLength="100"/>
+          </svg>
+          <div class="orbit-core">
+            <svg viewBox="0 0 38 38" fill="none">
+              <rect class="core-bar" x="8" y="16" width="5" height="18" rx="2" fill="#f4c25b"/>
+              <rect class="core-bar" x="16.5" y="8" width="5" height="26" rx="2" fill="#f4c25b"/>
+              <rect class="core-bar" x="25" y="12" width="5" height="22" rx="2" fill="#f4c25b"/>
+            </svg>
+          </div>
+        </div>
+        <h3 id="analyzingTitle">Бот анализирует рынок…</h3>
+        <p class="analyzing-sub" id="analyzingSub">XAU/USD · 15 мин · Все индикаторы</p>
+        <div class="think-progress"><i id="thinkBar"></i></div>
+        <ul id="analyzingSteps"></ul>
+        <button type="button" class="btn btn-ghost" id="analyzingBack" hidden>Отмена</button>
+      </section>
+
+      <!-- TAB 2: ANALYSIS & RESULT REPORT -->
+      <div id="result" hidden></div>
+
+      <!-- Empty state if no signal yet -->
+      <div id="analysisEmpty" class="glass res-card" style="text-align:center; padding:48px 20px;">
+        <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="#f4c25b" stroke-width="1.6" style="margin-bottom:14px;"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg>
+        <h3 style="font-family:var(--display); font-size:18px; margin-bottom:8px;">Сигнал пока не запрошен</h3>
+        <p style="color:var(--muted); font-size:13px; max-width:400px; margin:0 auto 20px;">Перейдите во вкладку «Запрос» и нажмите кнопку, чтобы получить детальный сетап с точкой входа, стоп-лоссом и целями тейк-профита.</p>
+        <button type="button" class="btn btn-gold" id="emptyAsk">Запросить сигнал →</button>
+      </div>
+
+      <!-- 200+ Indicator Breakdown Market View -->
+      <section class="glass ta-card market" id="market" hidden>
+        <div class="card-title">
+          <h3 style="font-family:var(--display); font-size:16px;">Рыночный консенсус 200+ индикаторов</h3>
+          <small id="source">Источник свечей: Прямой поток</small>
+        </div>
+
+        <div class="verdict-strip" id="verdictStrip">
+          <div class="vs-main">
+            <small>Общий вердикт рынка</small>
+            <b id="verdict">Анализ…</b>
+          </div>
+          <div class="vs-counts">
+            <span class="bull"><b id="cBull">0</b>Быки</span>
+            <span class="neutral"><b id="cNeutral">0</b>Нейтр.</span>
+            <span class="bear"><b id="cBear">0</b>Медведи</span>
+          </div>
+        </div>
+
+        <div class="seg" id="analysisTabs" style="margin-bottom:12px;">
+          <button type="button" class="active" data-pane="groups">Группы индикаторов</button>
+          <button type="button" data-pane="levels">Пивот-уровни (R3–S3)</button>
+        </div>
+
+        <div id="groups" class="group-list"></div>
+        <div id="levels" class="levels-list" hidden></div>
+
+        <div style="margin-top:20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <b style="font-size:14px;">Все индикаторы списка</b>
+            <span class="ind-shown" id="indShown">Загрузка…</span>
+          </div>
+          <input type="text" id="search" class="plain-input" placeholder="Поиск по названию индикатора (RSI, EMA, Stoch...)" style="width:100%; height:44px; padding:0 14px; border-radius:12px; background:rgba(255,255,255,0.04); border:1px solid var(--line); color:#fff; font-size:13px; margin-bottom:10px;">
+          <div class="seg filters" id="filters" style="margin-bottom:12px;">
+            <button type="button" class="chip active" data-filter="all">Все</button>
+            <button type="button" class="chip" data-filter="1">Бычьи ▲</button>
+            <button type="button" class="chip" data-filter="-1">Медвежьи ▼</button>
+          </div>
+          <div id="indList" class="ind-list"></div>
+        </div>
+
+        <div style="margin-top:14px; font-size:11px; color:var(--muted); text-align:right;" id="updated"></div>
+      </section>
+
+      <div class="new-signal" id="newSignal" hidden>
+        <button type="button" class="btn btn-gold" id="newSignalBtn">Запросить новый сигнал →</button>
+      </div>
+
+      <!-- TAB: NEWS & MACRO (Новостной режим и прогноз) -->
+      <section class="glass desk" id="newsPage" hidden>
+        <div class="desk-head" style="margin-bottom:18px;">
+          <span class="kicker"><i class="pulse-dot"></i> ЭКОНОМИЧЕСКИЙ КАЛЕНДАРЬ И МАКРО</span>
+          <h2>Новости рынка и прогноз направления</h2>
+          <p>Анализ макроэкономических факторов, инфляции и решений ЦБ по 4 активам с прогнозом направления движения цены.</p>
+        </div>
+
+        <!-- 4 Asset Forecast Cards Grid -->
+        <div class="news-forecast-grid" id="newsForecastGrid">
+          <div class="news-forecast-card" id="fcGold">
+            <div class="fc-head">
+              <b>🥇 ЗОЛОТО (XAU/USD)</b>
+              <span class="fc-badge" id="goldBiasBadge">Анализ…</span>
+            </div>
+            <p id="goldBiasText" class="fc-desc">Загрузка макроэкономических факторов…</p>
+          </div>
+          <div class="news-forecast-card" id="fcBtc">
+            <div class="fc-head">
+              <b>⚡ BITCOIN (BTC/USD)</b>
+              <span class="fc-badge" id="btcBiasBadge">Анализ…</span>
+            </div>
+            <p id="btcBiasText" class="fc-desc">Загрузка данных по ETF и криптоновостям…</p>
+          </div>
+          <div class="news-forecast-card" id="fcEur">
+            <div class="fc-head">
+              <b>💶 ЕВРО (EUR/USD)</b>
+              <span class="fc-badge" id="eurBiasBadge">Анализ…</span>
+            </div>
+            <p id="eurBiasText" class="fc-desc">Загрузка решений ЕЦБ и инфляции…</p>
+          </div>
+          <div class="news-forecast-card" id="fcGbp">
+            <div class="fc-head">
+              <b>💷 ФУНТ (GBP/USD)</b>
+              <span class="fc-badge" id="gbpBiasBadge">Анализ…</span>
+            </div>
+            <p id="gbpBiasText" class="fc-desc">Загрузка данных Банка Англии…</p>
+          </div>
+        </div>
+
+        <!-- Economic Calendar Feed -->
+        <div style="margin:24px 0 12px; display:flex; justify-content:space-between; align-items:center;">
+          <b style="font-size:15px; font-family:var(--display);">📅 Экономические события календаря (ForexFactory)</b>
+          <small id="newsCalendarUpdated" style="color:var(--muted); font-size:11px;">Обновление…</small>
+        </div>
+        <div id="newsCalendarList" class="news-calendar-list"></div>
+
+        <!-- Live Financial Headlines -->
+        <div style="margin:24px 0 12px; display:flex; justify-content:space-between; align-items:center;">
+          <b style="font-size:15px; font-family:var(--display);">⚡ Лента финансовых новостей (Yahoo Finance)</b>
+        </div>
+        <div id="newsHeadlinesList" class="news-headlines-list"></div>
+      </section>
+
+      <!-- TAB 3: HISTORY -->
+      <section class="glass desk" id="historyPage" hidden>
+        <div class="desk-head" style="margin-bottom:18px;">
+          <span class="kicker">ЖУРНАЛ СДЕЛОК</span>
+          <h2>История сигналов</h2>
+          <p id="historySummary">Загрузка сделок…</p>
+          <div id="historyDot" hidden></div>
+          <div id="historyBtn" hidden></div>
+          <div id="historyId" hidden></div>
+        </div>
+        <div id="histList"></div>
+      </section>
+
+      <!-- TAB 4: RISK MANAGEMENT -->
+      <section class="glass desk" id="riskPage" hidden></section>
+
+    </div>
+  </main>
+
+  <!-- MODAL: STRATEGY PICKER -->
+  <div class="modal-backdrop" id="pickBackdrop" hidden></div>
+  <div class="modal" id="pickModal" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <h2>Выбор алгоритмов</h2>
+          <p>Выберите индикаторы, которые участвуют в расчёте сигнала</p>
+        </div>
+        <button type="button" class="icon-btn" id="pickClose" aria-label="Закрыть">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="pick-tools">
+          <button type="button" class="btn btn-small" id="pickAll">Выбрать все</button>
+          <button type="button" class="btn btn-small btn-ghost" id="pickNone">Сбросить</button>
+          <span style="margin-left:auto; font-size:12px; color:var(--muted); align-self:center;" id="pickCount">0</span>
+        </div>
+        <div id="stratGrid"></div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-ghost" id="pickCancel">Отмена</button>
+        <button type="button" class="btn btn-gold" id="pickConfirm">
+          <span id="pickConfirmLabel">Применить</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation Bar (Phone & Desktop) -->
+  <nav class="bottom-nav">
+    <button type="button" class="active" data-nav="request">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      <span>Запрос</span>
+    </button>
+    <button type="button" data-nav="analysis">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg>
+      <span>Анализ</span>
+    </button>
+    <button type="button" data-nav="news">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+      <span>Новости</span>
+    </button>
+    <button type="button" data-nav="history">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <span>История</span>
+    </button>
+    <button type="button" data-nav="risk">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 7h6m-6 4h6m-6 4h4m5 6H6a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2v14a2 2 0 01-2 2z"/></svg>
+      <span>Риск</span>
+    </button>
+  </nav>
+
+  <!-- Sound effect synthesizer via Web Audio API -->
+  <script>
+    window.soundEnabled = true;
+    function playBeep(freq = 880, duration = 0.15, type = "sine") {
+      if (!window.soundEnabled) return;
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch(e) {}
+    }
+    document.getElementById("soundToggle").addEventListener("click", () => {
+      window.soundEnabled = !window.soundEnabled;
+      const btn = document.getElementById("soundToggle");
+      btn.classList.toggle("active", window.soundEnabled);
+      document.getElementById("soundIcon").textContent = window.soundEnabled ? "🔔" : "🔕";
+      if (window.soundEnabled) playBeep(920, 0.1);
+    });
+  </script>
+
+  <!-- Core Scripts -->
+  <script src="/static/js/bg.js"></script>
+  <script src="/static/js/common.js"></script>
+  <script src="/static/js/chart.js"></script>
+  <script src="/static/js/signal.js"></script>
+  <script src="/static/js/cabinet.js"></script>
+
+  <!-- MT5 Live Status Monitor & Signal Helper -->
+  <script>
+    (() => {
+      // Telegram Mini App WebApp Initialization
+      if (window.Telegram && window.Telegram.WebApp) {
+        try {
+          const tg = window.Telegram.WebApp;
+          tg.ready();
+          tg.expand();
+          if (tg.enableClosingConfirmation) tg.enableClosingConfirmation();
+        } catch(e) {}
+      }
+
+      const assetSelect = document.getElementById("assetSelect");
+      const badge = document.getElementById("mt5Badge");
+      const stateText = document.getElementById("mt5StateText");
+      const serverEl = document.getElementById("mt5BrokerServer");
+      const symEl = document.getElementById("mt5ActiveSymbol");
+      const bidEl = document.getElementById("mt5Bid");
+      const askEl = document.getElementById("mt5Ask");
+      const spreadEl = document.getElementById("mt5Spread");
+      const timeEl = document.getElementById("mt5LastTickTime");
+      const reconnectBtn = document.getElementById("mt5ReconnectBtn");
+
+      // Asset Switcher listener
+      assetSelect.addEventListener("change", () => {
+        pollStatus();
+        const askBtn = document.getElementById("askSignal");
+        if (askBtn && document.getElementById("result").hidden) {
+          // If we haven't asked a signal yet, can stay on desk
+        }
+      });
+
+      // Poll MT5 status and latest tick
+      async function pollStatus() {
+        try {
+          const symbol = assetSelect.value || "XAUUSD";
+          const res = await fetch(`/api/mt5/status`);
+          if (!res.ok) throw new Error("Status failed");
+          const st = await res.json();
+
+          if (st.is_connected) {
+            serverEl.textContent = st.server || "XMGlobal-MT5";
+            const brokerSym = (st.symbol_map && st.symbol_map[symbol]) || symbol;
+            symEl.textContent = brokerSym;
+
+            // Fetch specific tick for selected symbol
+            const tickRes = await fetch(`/api/market/tick?symbol=${encodeURIComponent(symbol)}`);
+            if (tickRes.ok) {
+              const tick = await tickRes.json();
+              bidEl.textContent = tick.bid !== undefined ? Number(tick.bid).toFixed(tick.bid > 100 ? 2 : 5) : "--";
+              askEl.textContent = tick.ask !== undefined ? Number(tick.ask).toFixed(tick.ask > 100 ? 2 : 5) : "--";
+              spreadEl.textContent = `СПРЕД: ${tick.spread ?? "--"}`;
+
+              const d = tick.time ? new Date(tick.time * 1000) : new Date();
+              const timeStr = d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+              timeEl.textContent = `${timeStr} (${tick.age_seconds ?? 0}с назад)`;
+
+              if (tick.is_stale) {
+                badge.className = "mt5-badge stale";
+                stateText.textContent = "ДАННЫЕ УСТАРЕЛИ";
+              } else {
+                badge.className = "mt5-badge";
+                stateText.textContent = "MT5 LIVE ПОТОК";
+              }
+
+              // Check if an active monitored trade is currently open
+              const activeBadge = document.getElementById("mt5ActiveTradeBadge");
+              const activeText = document.getElementById("mt5ActiveTradeText");
+              if (activeBadge && activeText) {
+                try {
+                  const trRes = await fetch("/api/trades/active");
+                  if (trRes.ok) {
+                    const trData = await trRes.json();
+                    const thisTrade = (trData.items || []).find(t => t.symbol === symbol);
+                    if (thisTrade) {
+                      activeBadge.style.display = "inline-flex";
+                      const pnl = thisTrade.r_floating !== undefined ? (thisTrade.r_floating >= 0 ? `+${thisTrade.r_floating}R` : `${thisTrade.r_floating}R`) : "";
+                      activeText.textContent = `СДЕЛКА В РАБОТЕ (${thisTrade.side} ${pnl})`;
+                    } else {
+                      activeBadge.style.display = "none";
+                    }
+                  }
+                } catch(e) {}
+              }
+            }
+          } else {
+            badge.className = "mt5-badge disconnected";
+            stateText.textContent = "MT5 НЕ ПОДКЛЮЧЕН";
+            serverEl.textContent = "Терминал оффлайн";
+            bidEl.textContent = "--";
+            askEl.textContent = "--";
+            spreadEl.textContent = "нет данных";
+            timeEl.textContent = "Терминал выключен";
+          }
+        } catch (e) {
+          badge.className = "mt5-badge disconnected";
+          stateText.textContent = "СБОЙ СВЯЗИ";
+        }
+      }
+
+      // Reconnect MT5 Button handler
+      if (reconnectBtn) {
+        reconnectBtn.addEventListener("click", async () => {
+          reconnectBtn.classList.add("loading");
+          reconnectBtn.querySelector("span").textContent = "Подключение…";
+          try {
+            const res = await fetch("/api/mt5/reconnect", { method: "POST" });
+            const data = await res.json();
+            if (data.success) {
+              playBeep(880, 0.1);
+              pollStatus();
+            } else {
+              alert("Не удалось подключиться к терминалу MetaTrader 5. Убедитесь, что MT5 запущен на компьютере.");
+            }
+          } catch(err) {
+            alert("Ошибка связи с локальным сервером: " + err.message);
+          } finally {
+            reconnectBtn.classList.remove("loading");
+            reconnectBtn.querySelector("span").textContent = "Переподключить MT5";
+          }
+        });
+      }
+
+      // Continuous status polling every 1.5s
+      pollStatus();
+      setInterval(() => {
+        if (!document.hidden) pollStatus();
+      }, 1500);
+
+      // Inject "Copy to MT5" button into Plan Card
+      function injectCopyButton(report) {
+        const ladderBox = document.querySelector(".res-plan");
+        if (!ladderBox || document.getElementById("copyMt5Btn")) return;
+
+        const copyBtn = document.createElement("button");
+        copyBtn.type = "button";
+        copyBtn.className = "copy-mt5-btn";
+        copyBtn.id = "copyMt5Btn";
+        copyBtn.innerHTML = `
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          Скопировать параметры сделки для MT5
+        `;
+
+        copyBtn.addEventListener("click", () => {
+          const side = report.side;
+          const entry = report.plan.entry;
+          const stop = report.plan.stop;
+          const tps = report.plan.targets;
+          const symbol = report.broker_symbol || report.trade?.symbol || assetSelect.value || "XAUUSD";
+
+          const text = [
+            `📈 МТ5 СИГНАЛ: ${symbol}`,
+            `Направление: ${side}`,
+            `Вход: ${entry}`,
+            `Стоп-Лосс: ${stop}`,
+            `Тейк-Профит 1: ${tps[0]} (фиксация 50%)`,
+            `Тейк-Профит 2: ${tps[1]} (фиксация 30%)`,
+            `Тейк-Профит 3: ${tps[2]} (фиксация 20%)`
+          ].join("\n");
+
+          navigator.clipboard.writeText(text).then(() => {
+            copyBtn.innerHTML = `✓ Скопировано в буфер обмена!`;
+            setTimeout(() => {
+              copyBtn.innerHTML = `
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                Скопировать параметры сделки для MT5
+              `;
+            }, 3000);
+          });
+        });
+
+        ladderBox.appendChild(copyBtn);
+      }
+
+      // Listen for signal readiness
+      document.addEventListener("signalready", () => {
+        playBeep(1046, 0.2);
+        setTimeout(() => {
+          const report = window.__lastReport;
+          if (report) {
+            injectCopyButton(report);
+          }
+        }, 100);
+      });
+    })();
+  </script>
+</body>
+</html>
