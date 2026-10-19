@@ -1,6 +1,7 @@
 fastapi>=0.100.0
 uvicorn>=0.23.0
-MetaTrader5>=5.0.40
 httpx>=0.24.0
 requests>=2.31.0
 aiofiles>=23.0.0
+# MetaTrader5 is a Windows-only binary package.
+# On Windows, install MetaTrader5 via: pip install MetaTrader5

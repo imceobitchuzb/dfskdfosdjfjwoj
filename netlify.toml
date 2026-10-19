@@ -1,0 +1,9 @@
+[build]
+  publish = "."
+  command = "echo 'Static assets ready'"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "ALLOWALL"
+    Access-Control-Allow-Origin = "*"

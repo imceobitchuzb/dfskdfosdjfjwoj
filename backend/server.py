@@ -36,6 +36,8 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 @app.get("/cabinet", response_class=HTMLResponse)
 async def cabinet_page():
     index_file = os.path.join(TEMPLATES_DIR, "index.html")
+    if not os.path.exists(index_file):
+        index_file = os.path.join(BASE_DIR, "index.html")
     if os.path.exists(index_file):
         with open(index_file, "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
