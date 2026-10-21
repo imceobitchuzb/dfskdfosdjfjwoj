@@ -32,6 +32,10 @@ TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
+@app.get("/api/health")
+async def health_check():
+    return {"status": "ok"}
+
 @app.get("/", response_class=HTMLResponse)
 @app.get("/cabinet", response_class=HTMLResponse)
 async def cabinet_page():
