@@ -14,6 +14,7 @@ from backend.indicators import calculate_all_indicators
 from backend.telegram_bot import telegram_bot
 from backend.news_service import news_service
 from backend.trade_tracker import trade_tracker
+from backend.tunnel_manager import tunnel_manager
 
 app = FastAPI(title="MT Trade Live Signals Terminal")
 
@@ -21,10 +22,13 @@ app = FastAPI(title="MT Trade Live Signals Terminal")
 async def startup_event():
     # Start 24/7 Telegram Signal Bot & Market Scanner
     asyncio.create_task(telegram_bot.start())
+    # Start Cloudflare Tunnel
+    tunnel_manager.start()
 
 @app.on_event("shutdown")
 async def shutdown_event():
     telegram_bot.stop()
+    tunnel_manager.stop()
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_DIR = os.path.join(BASE_DIR, "static")
@@ -35,6 +39,10 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 @app.get("/api/health")
 async def health_check():
     return {"status": "ok"}
+
+@app.get("/api/tunnel/url")
+async def get_tunnel_url():
+    return {"url": tunnel_manager.tunnel_url}
 
 @app.get("/", response_class=HTMLResponse)
 @app.get("/cabinet", response_class=HTMLResponse)
